@@ -39,7 +39,7 @@ function drawEnemies() {
     ctx.fillStyle = e.color;
     if (e.shape === "circle") {
       ctx.beginPath();
-      ctx.arc(e.x + e.width/2, e.y + e.height/2, e.width/2, 0, Math.PI * 2);
+      ctx.arc(e.x + e.width / 2, e.y + e.height / 2, e.width / 2, 0, Math.PI * 2);
       ctx.fill();
     } else {
       ctx.fillRect(e.x, e.y, e.width, e.height);
@@ -175,16 +175,21 @@ function startGame() {
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (gameState === "menu") drawMenu();
-  else if (gameState === "settings") drawSettings();
-  else if (gameState === "gameover") drawGameOver();
-  else if (gameState === "playing") {
+
+  if (gameState === "menu") {
+    drawMenu();
+  } else if (gameState === "settings") {
+    drawSettings();
+  } else if (gameState === "gameover") {
+    drawGameOver();
+  } else if (gameState === "playing") {
     drawPlayer();
     drawBullets();
     drawEnemies();
     detectCollisions();
     drawScore();
   }
+
   requestAnimationFrame(gameLoop);
 }
 

@@ -3,20 +3,21 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let gameState = "menu"; // "menu", "settings", "playing", "gameover"
+let gameState = "menu";
 let sensitivity = 1.5;
 let score = 0;
 let highScore = localStorage.getItem("highScore") || 0;
 let bullets = [];
 let enemies = [];
 let soundOn = true;
+let isTouching = false;
+let shootInterval;
 let player = {
   x: canvas.width / 2 - 20,
   y: canvas.height - 80,
   width: 40,
   height: 40
 };
-let isTouching = false;
 const shootSound = new Audio("shoot.wav");
 
 function drawPlayer() {
@@ -36,10 +37,16 @@ function drawBullets() {
 function drawEnemies() {
   enemies.forEach(e => {
     ctx.fillStyle = e.color;
-    ctx.fillRect(e.x, e.y, e.width, e.height);
+    if (e.shape === "circle") {
+      ctx.beginPath();
+      ctx.arc(e.x + e.width/2, e.y + e.height/2, e.width/2, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillRect(e.x, e.y, e.width, e.height);
+    }
+
     e.y += e.speed;
 
-    // Eğer düşman oyuncuya çarparsa oyun biter
     if (
       e.y + e.height > player.y &&
       e.x < player.x + player.width &&
@@ -54,8 +61,23 @@ function drawEnemies() {
 function detectCollisions() {
   bullets.forEach((b, bi) => {
     enemies.forEach((e, ei) => {
-      if (b.x < e.x + e.width && b.x + b.width > e.x &&
-          b.y < e.y + e.height && b.y + b.height > e.y) {
+      let hit = false;
+      if (e.shape === "circle") {
+        const dx = b.x + b.width / 2 - (e.x + e.width / 2);
+        const dy = b.y + b.height / 2 - (e.y + e.height / 2);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < e.width / 2 + b.width / 2) hit = true;
+      } else {
+        if (
+          b.x < e.x + e.width &&
+          b.x + b.width > e.x &&
+          b.y < e.yb.y + b.height > e.y
+        ) {
+          hit = true;
+        }
+      }
+
+      if (hit) {
         bullets.splice(bi, 1);
         enemies.splice(ei, 1);
         score += e.points;
@@ -69,8 +91,9 @@ function spawnEnemy() {
   const speed = 2 + Math.random() * 3;
   const colors = ["red", "blue", "green", "orange", "purple"];
   const color = colors[Math.floor(Math.random() * colors.length)];
+  const shape = Math.random() < 0.5 ? "rect" : "circle"; // yeni: şekil çeşitliliği
   const points = { red: 1, blue: 2, green: 3, orange: 4, purple: 5 }[color];
-  enemies.push({ x, y: -30, width: 30, height: 30, speed, color, points });
+  enemies.push({ x, y: -30, width: 30, height: 30, speed, color, points, shape });
 }
 
 function shoot() {
@@ -110,9 +133,7 @@ function drawSettings() {
   drawButton("Sesi " + (soundOn ? "Kapat" : "Aç"), canvas.width / 2, 350);
   drawButton("Geri", canvas.width / 2, canvas.height - 80);
   drawButton("Çık", canvas.width / 2, canvas.height - 20);
-}
-
-function drawGameOver() {
+}function drawGameOver() {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "white";

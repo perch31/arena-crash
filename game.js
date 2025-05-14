@@ -3,12 +3,20 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+let gameState = "menu"; // "menu", "settings", "playing", "gameover"
 let sensitivity = 1.5;
-let player = { x: canvas.width / 2 - 20, y: canvas.height - 80, width: 40, height: 40 };
+let score = 0;
+let highScore = localStorage.getItem("highScore") || 0;
 let bullets = [];
 let enemies = [];
-let score = 0;
-
+let soundOn = true;
+let player = {
+  x: canvas.width / 2 - 20,
+  y: canvas.height - 80,
+  width: 40,
+  height: 40
+};
+let isTouching = false;
 const shootSound = new Audio("shoot.wav");
 
 function drawPlayer() {
@@ -30,6 +38,15 @@ function drawEnemies() {
     ctx.fillStyle = e.color;
     ctx.fillRect(e.x, e.y, e.width, e.height);
     e.y += e.speed;
+
+    // Eğer düşman oyuncuya çarparsa oyun biter
+    if (
+      e.y + e.height > player.y &&
+      e.x < player.x + player.width &&
+      e.x + e.width > player.x
+    ) {
+      endGame();
+    }
   });
   enemies = enemies.filter(e => e.y < canvas.height);
 }
@@ -56,51 +73,159 @@ function spawnEnemy() {
   enemies.push({ x, y: -30, width: 30, height: 30, speed, color, points });
 }
 
-function drawScore() {
+function shoot() {
+  bullets.push({
+    x: player.x + player.width / 2 - 2,
+    y: player.y,
+    width: 4,
+    height: 10
+  });
+  if (soundOn) shootSound.play();
+}
+
+function drawMenu() {
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "white";
-  ctx.font = "20px Arial";
-  ctx.fillText("Score: " + score, 10, 30);
+  ctx.font = "40px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Arena Clash", canvas.width / 2, canvas.height / 2 - 100);
+
+  drawButton("Başla", canvas.width / 2, canvas.height / 2);
+  drawButton("Ayarlar", canvas.width / 2, canvas.height / 2 + 80);
 }
 
 function drawSettings() {
-  ctx.fillStyle = "rgba(0,0,0,0.7)";
-  ctx.fillRect(10, canvas.height - 80, 160, 70);
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "white";
-  ctx.fillText("Sensitivity: " + sensitivity.toFixed(1), 20, canvas.height - 50);
-  ctx.fillText("Use +/- keys", 20, canvas.height - 30);
+  ctx.font = "30px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Ayarlar", canvas.width / 2, 100);
+  ctx.fillText("Hassasiyet: " + sensitivity.toFixed(1), canvas.width / 2, 180);
+  ctx.fillText("Ses: " + (soundOn ? "Açık" : "Kapalı"), canvas.width / 2, 230);
+
+  drawButton("+", canvas.width / 2 - 60, 280, 50);
+  drawButton("-", canvas.width / 2 + 60, 280, 50);
+  drawButton("Sesi " + (soundOn ? "Kapat" : "Aç"), canvas.width / 2, 350);
+  drawButton("Geri", canvas.width / 2, canvas.height - 80);
+  drawButton("Çık", canvas.width / 2, canvas.height - 20);
+}
+
+function drawGameOver() {
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "white";
+  ctx.font = "35px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Oyun Bitti", canvas.width / 2, canvas.height / 2 - 80);
+  ctx.fillText("Skor: " + score, canvas.width / 2, canvas.height / 2);
+  ctx.fillText("En Yüksek Skor: " + highScore, canvas.width / 2, canvas.height / 2 + 40);
+
+  drawButton("Menüye Dön", canvas.width / 2, canvas.height / 2 + 120);
+}
+
+function drawButton(text, x, y, width = 160, height = 50) {
+  ctx.fillStyle = "#333";
+  ctx.fillRect(x - width / 2, y - height / 2, width, height);
+  ctx.fillStyle = "white";
+  ctx.font = "24px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(text, x, y + 8);
+}
+
+function drawScore() {
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.textAlign = "left";
+  ctx.fillText("Score: " + score, 10, 30);
+}
+
+function endGame() {
+  gameState = "gameover";
+  highScore = Math.max(highScore, score);
+  localStorage.setItem("highScore", highScore);
+}
+
+function startGame() {
+  gameState = "playing";
+  score = 0;
+  bullets = [];
+  enemies = [];
+  player.x = canvas.width / 2 - 20;
 }
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawPlayer();
-  drawBullets();
-  drawEnemies();
-  detectCollisions();
-  drawScore();
-  drawSettings();
+
+  if (gameState === "menu") {
+    drawMenu();
+  } else if (gameState === "settings") {
+    drawSettings();
+  } else if (gameState === "gameover") {
+    drawGameOver();
+  } else if (gameState === "playing") {
+    drawPlayer();
+    drawBullets();
+    drawEnemies();
+    detectCollisions();
+    drawScore();
+  }
+
   requestAnimationFrame(gameLoop);
 }
 
-// Klavye ile kontrol (masaüstü için)
-document.addEventListener("keydown", (e) => {
-  if (e.key === " ") {
-    bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
-    shootSound.play();
-  }
-  if (e.key === "+") sensitivity += 0.1;
-  if (e.key === "-") sensitivity = Math.max(0.1, sensitivity - 0.1);
-});
-
-// Dokunmatik kontroller (mobil)
-canvas.addEventListener("touchmove", (e) => {
-  const touch = e.touches[0];
-  player.x = touch.clientX - player.width / 2;
-});
-
 canvas.addEventListener("touchstart", (e) => {
-  bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
-  shootSound.play();
+  const touch = e.touches[0];
+  const x = touch.clientX;
+  const y = touch.clientY;
+
+  if (gameState === "menu") {
+    if (isInButton(x, y, canvas.width / 2, canvas.height / 2)) startGame();
+    else if (isInButton(x, y, canvas.width / 2, canvas.height / 2 + 80)) gameState = "settings";
+  } else if (gameState === "settings") {
+    if (isInButton(x, y, canvas.width / 2 - 60, 280, 50)) sensitivity += 0.1;
+    else if (isInButton(x, y, canvas.width / 2 + 60, 280, 50)) sensitivity = Math.max(0.1, sensitivity - 0.1);
+    else if (isInButton(x, y, canvas.width / 2, 350)) soundOn = !soundOn;
+    else if (isInButton(x, y, canvas.width / 2, canvas.height - 80)) gameState = "menu";
+    else if (isInButton(x, y, canvas.width / 2, canvas.height - 20)) location.reload();
+  } else if (gameState === "gameover") {
+    if (isInButton(x, y, canvas.width / 2, canvas.height / 2 + 120)) gameState = "menu";
+  } else if (gameState === "playing") {
+    isTouching = true;
+    player.x = x - player.width / 2;
+    shoot();
+  }
 });
 
-setInterval(spawnEnemy, 800);
+canvas.addEventListener("touchmove", (e) => {
+  if (gameState === "playing") {
+    const touch = e.touches[0];
+    player.x = touch.clientX - player.width / 2;
+  }
+});
+
+canvas.addEventListener("touchend", () => {
+  isTouching = false;
+});
+
+function isInButton(tx, ty, bx, by, bw = 160, bh = 50) {
+  return (
+    tx > bx - bw / 2 &&
+    tx < bx + bw / 2 &&
+    ty > by - bh / 2 &&
+    ty < by + bh / 2
+  );
+}
+
+setInterval(() => {
+  if (gameState === "playing" && isTouching) {
+    shoot();
+  }
+}, 300);
+
+setInterval(() => {
+  if (gameState === "playing") spawnEnemy();
+}, 800);
+
 gameLoop();

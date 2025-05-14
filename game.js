@@ -50,8 +50,9 @@ function detectCollisions() {
 function spawnEnemy() {
   const x = Math.random() * (canvas.width - 30);
   const speed = 2 + Math.random() * 3;
-  const color = ["red", "blue", "green", "orange", "purple"][Math.floor(Math.random() * 5)];
-  const points = {red: 1, blue: 2, green: 3, orange: 4, purple: 5}[color];
+  const colors = ["red", "blue", "green", "orange", "purple"];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  const points = { red: 1, blue: 2, green: 3, orange: 4, purple: 5 }[color];
   enemies.push({ x, y: -30, width: 30, height: 30, speed, color, points });
 }
 
@@ -80,8 +81,9 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+// Klavye ile kontrol (masaüstü için)
 document.addEventListener("keydown", (e) => {
-  if (e.key === " "){
+  if (e.key === " ") {
     bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
     shootSound.play();
   }
@@ -89,9 +91,15 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "-") sensitivity = Math.max(0.1, sensitivity - 0.1);
 });
 
+// Dokunmatik kontroller (mobil)
 canvas.addEventListener("touchmove", (e) => {
   const touch = e.touches[0];
   player.x = touch.clientX - player.width / 2;
+});
+
+canvas.addEventListener("touchstart", (e) => {
+  bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
+  shootSound.play();
 });
 
 setInterval(spawnEnemy, 800);

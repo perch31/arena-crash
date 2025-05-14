@@ -1,29 +1,8 @@
-
 body {
   margin: 0;
-  padding: 0;
-  background-color: #222;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
-}
-#game-container {
-  margin: 0 auto;
-  padding-top: 10px;
-}
-#scoreboard {
-  font-size: 20px;
-  margin-bottom: 10px;
+  overflow: hidden;
+  background: #000;
 }
 canvas {
-  background-color: #111;
-  border: 2px solid #444;
-}
-#controls {
-  margin-top: 10px;
-}
-#controls button {
-  font-size: 20px;
-  padding: 10px 20px;
-  margin: 5px;
+  display: block;
 }

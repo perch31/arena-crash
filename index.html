@@ -1,23 +1,13 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Arena Clash</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arena Clash Mobile</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="game-container">
-    <div id="scoreboard">
-      Skor: <span id="score">0</span> | <span id="dev">Geliştirici: Perch</span>
-    </div>
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
-    <div id="controls">
-      <button onclick="moveLeft()">←</button>
-      <button onclick="shoot()">Ateş Et</button>
-      <button onclick="moveRight()">→</button>
-    </div>
-  </div>
+  <canvas id="gameCanvas"></canvas>
   <script src="game.js"></script>
 </body>
 </html>

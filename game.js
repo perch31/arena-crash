@@ -1,8 +1,10 @@
-
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-let player = { x: 180, y: 550, width: 40, height: 40 };
+let sensitivity = 1.5;
+let player = { x: canvas.width / 2 - 20, y: canvas.height - 80, width: 40, height: 40 };
 let bullets = [];
 let enemies = [];
 let score = 0;
@@ -18,16 +20,16 @@ function drawBullets() {
   ctx.fillStyle = "yellow";
   bullets.forEach(b => {
     ctx.fillRect(b.x, b.y, b.width, b.height);
-    b.y -= 5;
+    b.y -= 10;
   });
   bullets = bullets.filter(b => b.y > 0);
 }
 
 function drawEnemies() {
-  ctx.fillStyle = "red";
   enemies.forEach(e => {
+    ctx.fillStyle = e.color;
     ctx.fillRect(e.x, e.y, e.width, e.height);
-    e.y += 2;
+    e.y += e.speed;
   });
   enemies = enemies.filter(e => e.y < canvas.height);
 }
@@ -35,17 +37,36 @@ function drawEnemies() {
 function detectCollisions() {
   bullets.forEach((b, bi) => {
     enemies.forEach((e, ei) => {
-      if (b.x < e.x + e.width &&
-          b.x + b.width > e.x &&
-          b.y < e.y + e.height &&
-          b.y + b.height > e.y) {
+      if (b.x < e.x + e.width && b.x + b.width > e.x &&
+          b.y < e.y + e.height && b.y + b.height > e.y) {
         bullets.splice(bi, 1);
         enemies.splice(ei, 1);
-        score++;
-        document.getElementById("score").textContent = score;
+        score += e.points;
       }
     });
   });
+}
+
+function spawnEnemy() {
+  const x = Math.random() * (canvas.width - 30);
+  const speed = 2 + Math.random() * 3;
+  const color = ["red", "blue", "green", "orange", "purple"][Math.floor(Math.random() * 5)];
+  const points = {red: 1, blue: 2, green: 3, orange: 4, purple: 5}[color];
+  enemies.push({ x, y: -30, width: 30, height: 30, speed, color, points });
+}
+
+function drawScore() {
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.fillText("Score: " + score, 10, 30);
+}
+
+function drawSettings() {
+  ctx.fillStyle = "rgba(0,0,0,0.7)";
+  ctx.fillRect(10, canvas.height - 80, 160, 70);
+  ctx.fillStyle = "white";
+  ctx.fillText("Sensitivity: " + sensitivity.toFixed(1), 20, canvas.height - 50);
+  ctx.fillText("Use +/- keys", 20, canvas.height - 30);
 }
 
 function gameLoop() {
@@ -54,30 +75,24 @@ function gameLoop() {
   drawBullets();
   drawEnemies();
   detectCollisions();
+  drawScore();
+  drawSettings();
   requestAnimationFrame(gameLoop);
 }
 
-function shoot() {
-  bullets.push({ x: player.x + 16, y: player.y, width: 8, height: 10 });
-  shootSound.currentTime = 0;
-  shootSound.play();
-}
-function moveLeft() {
-  player.x -= 10;
-}
-function moveRight() {
-  player.x += 10;
-}
-
 document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft") moveLeft();
-  if (e.key === "ArrowRight") moveRight();
-  if (e.key === " " || e.key === "Spacebar") shoot();
+  if (e.key === " "){
+    bullets.push({ x: player.x + player.width / 2 - 2, y: player.y, width: 4, height: 10 });
+    shootSound.play();
+  }
+  if (e.key === "+") sensitivity += 0.1;
+  if (e.key === "-") sensitivity = Math.max(0.1, sensitivity - 0.1);
 });
 
-setInterval(() => {
-  let x = Math.random() * (canvas.width - 40);
-  enemies.push({ x: x, y: 0, width: 40, height: 40 });
-}, 1000);
+canvas.addEventListener("touchmove", (e) => {
+  const touch = e.touches[0];
+  player.x = touch.clientX - player.width / 2;
+});
 
+setInterval(spawnEnemy, 800);
 gameLoop();

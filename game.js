@@ -71,12 +71,10 @@ function detectCollisions() {
         if (
           b.x < e.x + e.width &&
           b.x + b.width > e.x &&
-          b.y < e.yb.y + b.height > e.y
-        ) {
-          hit = true;
-        }
+          b.y < e.y + e.height &&
+          b.y + b.height > e.y
+        ) hit = true;
       }
-
       if (hit) {
         bullets.splice(bi, 1);
         enemies.splice(ei, 1);
@@ -91,8 +89,8 @@ function spawnEnemy() {
   const speed = 2 + Math.random() * 3;
   const colors = ["red", "blue", "green", "orange", "purple"];
   const color = colors[Math.floor(Math.random() * colors.length)];
-  const shape = Math.random() < 0.5 ? "rect" : "circle"; // yeni: şekil çeşitliliği
   const points = { red: 1, blue: 2, green: 3, orange: 4, purple: 5 }[color];
+  const shape = Math.random() < 0.5 ? "square" : "circle";
   enemies.push({ x, y: -30, width: 30, height: 30, speed, color, points, shape });
 }
 
@@ -113,7 +111,6 @@ function drawMenu() {
   ctx.font = "40px Arial";
   ctx.textAlign = "center";
   ctx.fillText("Arena Clash", canvas.width / 2, canvas.height / 2 - 100);
-
   drawButton("Başla", canvas.width / 2, canvas.height / 2);
   drawButton("Ayarlar", canvas.width / 2, canvas.height / 2 + 80);
 }
@@ -127,13 +124,14 @@ function drawSettings() {
   ctx.fillText("Ayarlar", canvas.width / 2, 100);
   ctx.fillText("Hassasiyet: " + sensitivity.toFixed(1), canvas.width / 2, 180);
   ctx.fillText("Ses: " + (soundOn ? "Açık" : "Kapalı"), canvas.width / 2, 230);
-
   drawButton("+", canvas.width / 2 - 60, 280, 50);
   drawButton("-", canvas.width / 2 + 60, 280, 50);
   drawButton("Sesi " + (soundOn ? "Kapat" : "Aç"), canvas.width / 2, 350);
   drawButton("Geri", canvas.width / 2, canvas.height - 80);
   drawButton("Çık", canvas.width / 2, canvas.height - 20);
-}function drawGameOver() {
+}
+
+function drawGameOver() {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "white";
@@ -142,7 +140,6 @@ function drawSettings() {
   ctx.fillText("Oyun Bitti", canvas.width / 2, canvas.height / 2 - 80);
   ctx.fillText("Skor: " + score, canvas.width / 2, canvas.height / 2);
   ctx.fillText("En Yüksek Skor: " + highScore, canvas.width / 2, canvas.height / 2 + 40);
-
   drawButton("Menüye Dön", canvas.width / 2, canvas.height / 2 + 120);
 }
 
@@ -178,21 +175,16 @@ function startGame() {
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (gameState === "menu") {
-    drawMenu();
-  } else if (gameState === "settings") {
-    drawSettings();
-  } else if (gameState === "gameover") {
-    drawGameOver();
-  } else if (gameState === "playing") {
+  if (gameState === "menu") drawMenu();
+  else if (gameState === "settings") drawSettings();
+  else if (gameState === "gameover") drawGameOver();
+  else if (gameState === "playing") {
     drawPlayer();
     drawBullets();
     drawEnemies();
     detectCollisions();
     drawScore();
   }
-
   requestAnimationFrame(gameLoop);
 }
 

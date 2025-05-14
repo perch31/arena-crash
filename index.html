@@ -1,13 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Arena Clash Mobile</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Oyun Tuvali -->
   <canvas id="gameCanvas"></canvas>
+
+  <!-- Menü Ekranı -->
+  <div id="menu" class="overlay">
+    <h1>Arena Clash</h1>
+    <button id="startBtn">Oyuna Başla</button>
+    <button id="settingsBtn">Ayarlar</button>
+    <button id="soundToggleBtn">Ses: Açık</button>
+  </div>
+
+  <!-- Ayarlar Menüsü -->
+  <div id="settingsMenu" class="overlay hidden">
+    <h2>Ayarlar</h2>
+    <label>
+      Hassasiyet:
+      <input type="range" id="sensitivitySlider" min="0.5" max="2.0" step="0.1" value="1.0">
+    </label>
+    <label>
+      Sürekli Ateş:
+      <input type="checkbox" id="autoFireToggle">
+    </label>
+    <button id="backBtn">Geri</button>
+  </div>
+
+  <!-- UI Katmanı (Skor, Can vs.) -->
+  <div id="hud" class="hidden">
+    <div id="scoreDisplay">Skor: 0</div>
+    <div id="livesDisplay">Can: 3</div>
+  </div>
+
   <script src="game.js"></script>
 </body>
 </html>
